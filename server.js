@@ -4,17 +4,11 @@ const http = require("http");
 const routes = require("./routes");
 const user = require("./userInfo");
 const { MongoClient } = require("mongodb");
-const uri =
-  "mongodb://" +
-  user.USER_NAME +
-  ":" +
-  user.PASS +
-  "@cluster0-shard-00-00.ryznu.gcp.mongodb.net:27017,cluster0-shard-00-01.ryznu.gcp.mongodb.net:27017,cluster0-shard-00-02.ryznu.gcp.mongodb.net:27017/khaanadb?ssl=true&replicaSet=atlas-k2fdmq-shard-0&authSource=admin&retryWrites=true&w=majority";
-console.log(uri);
+
 const app = express();
 const server = http.createServer(app);
 const fs = require("fs");
-const client = new MongoClient(uri);
+const client = new MongoClient(user.uri);
 
 // Redirects
 app.use("/", routes);
