@@ -1,67 +1,51 @@
 // imports
 const express = require("express");
 const http = require("http");
-
+const routes = require("./routes");
+const user = require("./userInfo");
+const { MongoClient } = require("mongodb");
+const uri =
+  "mongodb://" +
+  user.USER_NAME +
+  ":" +
+  user.PASS +
+  "@cluster0-shard-00-00.ryznu.gcp.mongodb.net:27017,cluster0-shard-00-01.ryznu.gcp.mongodb.net:27017,cluster0-shard-00-02.ryznu.gcp.mongodb.net:27017/khaanadb?ssl=true&replicaSet=atlas-k2fdmq-shard-0&authSource=admin&retryWrites=true&w=majority";
+console.log(uri);
 const app = express();
 const server = http.createServer(app);
 const fs = require("fs");
+const client = new MongoClient(uri);
 
 // Redirects
+app.use("/", routes);
 app.use(express.static("css"));
 app.use(express.static("scripts"));
 app.use(express.static("images"));
+
 app.use("/css", express.static("css"));
 app.use("/scripts", express.static("scripts"));
 app.use("/images", express.static("images"));
 
-app.get("/", function (req, response) {
-  fs.readFile("./index.html", "utf-8", (err, html) => {
-    if (err) {
-      response
-        .status(500)
-        .send("Something went wrong, Please try again later.");
-    }
-    response.send(html);
-    response.end();
-  });
-});
-
-app.get("/index.html", function (req, response) {
-  fs.readFile("./index.html", "utf-8", (err, html) => {
-    if (err) {
-      response
-        .status(500)
-        .send("Something went wrong, Please try again later.");
-    }
-    response.send(html);
-    response.end();
-  });
-});
-
-app.get("/contact.html", function (req, response) {
-  fs.readFile("./contact.html", "utf-8", (err, html) => {
-    if (err) {
-      response
-        .status(500)
-        .send("Something went wrong, Please try again later.");
-    }
-    response.send(html);
-    response.end();
-  });
-});
-
-app.get("/donate.html", function (req, response) {
-  fs.readFile("./donate.html", "utf-8", (err, html) => {
-    if (err) {
-      response
-        .status(500)
-        .send("Something went wrong, Please try again later.");
-    }
-    response.send(html);
-    response.end();
-  });
-});
-
 server.listen(3000, () => {
   console.log("Server created at http://localhost:3000");
 });
+
+connectDb();
+
+async function connectDb() {
+  try {
+    await client.connect();
+    await listDatabases(client);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    await client.close();
+  }
+
+  async function listDatabases(client) {
+    databasesList = await client.db().admin().listDatabases();
+
+    console.log("Databases:");
+    databasesList.databases.forEach((db) => console.log(` - ${db.name}`));
+  }
+}
